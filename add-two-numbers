@@ -1,0 +1,51 @@
+class Solution {
+    public ListNode addTwoNumbers(ListNode l1, ListNode l2) {
+        ListNode res = new ListNode();
+        ListNode head = res;
+        int carry = 0;
+        while (l1 != null && l2 != null) {
+            res.next = new ListNode();
+            res = res.next;
+            res.val = l1.val + l2.val + carry;
+            if (res.val >= 10) {
+                res.val -= 10;
+                carry = 1;
+            } else {
+                carry = 0;
+            }
+            l1 = l1.next;
+            l2 = l2.next;
+        }
+        carry = cont(l1, res, carry);
+        carry = cont(l2, res, carry);
+        // get Last node;
+        res = getLast(res);
+        if (carry > 0) {
+            res.next = new ListNode();
+            res = res.next;
+            res.val = 1;
+        }
+        return head.next;
+    }
+
+    private ListNode getLast(ListNode node) {
+        while (node.next != null) node = node.next;
+        return node;
+    }
+
+    private int cont(ListNode l, ListNode res, int carry) {
+        while (l != null) {
+            res.next = new ListNode();
+            res = res.next;
+            res.val = l.val + carry;
+            if (res.val >= 10) {
+                res.val -= 10;
+                carry = 1;
+            } else {
+                carry = 0;
+            }
+            l = l.next;
+        }
+        return carry;
+    }
+}
