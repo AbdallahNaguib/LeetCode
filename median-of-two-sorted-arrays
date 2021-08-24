@@ -1,0 +1,94 @@
+class Solution {
+    int totalLength;
+
+    public double findMedianSortedArrays(int[] nums1, int[] nums2) {
+        if (nums1.length == 0) {
+            return getMedianFromList(nums2);
+        } else if (nums2.length == 0) {
+            return getMedianFromList(nums1);
+        }
+        totalLength = nums1.length + nums2.length;
+        int numberOfElementsSmallerThanMedian = totalLength / 2;
+        int firstSetAnswerIndex = solve(nums1, nums2, numberOfElementsSmallerThanMedian);
+        double answer;
+        if (firstSetAnswerIndex != -1) {
+            answer = getMedian(nums1, nums2, firstSetAnswerIndex, numberOfElementsSmallerThanMedian);
+        } else {
+            int secondSetAnswerIndex = solve(nums2, nums1, numberOfElementsSmallerThanMedian);
+            answer = getMedian(nums2, nums1, secondSetAnswerIndex, numberOfElementsSmallerThanMedian);
+        }
+        return answer;
+    }
+
+    private double getMedianFromList(int[] nums) {
+        if (nums.length % 2 == 1) {
+            return nums[nums.length / 2];
+        }
+        return (double)(nums[nums.length/2] + nums[nums.length/2 - 1])/2;
+    }
+
+    // nums1 will be the set containing the median number
+    private double getMedian(int[] nums1, int[] nums2, int median, int numberOfElementsSmallerThanMedian) {
+        if (totalLength % 2 == 0) {
+            return getMedianForEvenLengthLists(nums1, nums2, median, numberOfElementsSmallerThanMedian);
+        } else {
+            return nums1[median];
+        }
+    }
+
+    private double getMedianForEvenLengthLists(int[] nums1, int[] nums2, int median, int numberOfElementsSmallerThanMedian) {
+        int opponentIndex = getOpponentIndex(median, numberOfElementsSmallerThanMedian);
+        int otherNumber = Integer.MIN_VALUE;
+        if (opponentIndex >= 0){
+            otherNumber = nums2[opponentIndex];
+        }
+        if (median > 0) {
+            otherNumber = Math.max(otherNumber, nums1[median - 1]);
+        }
+        double currentNumber = nums1[median];
+        return (currentNumber + otherNumber) / 2;
+    }
+
+    private int solve(int[] nums1, int[] nums2, int numberOfElementsSmallerThanMedian) {
+        int start = 0, end = Math.min(nums1.length - 1,numberOfElementsSmallerThanMedian);
+        while (start <= end) {
+            int middle = (start + end) / 2;
+            if (isNumberTheCorrectAnswer(middle, nums1, nums2, numberOfElementsSmallerThanMedian)) {
+                return middle;
+            } else if (isNumberBiggerThanItsOpponent(middle, nums1, nums2, numberOfElementsSmallerThanMedian)) {
+                end = middle - 1;
+            } else {
+                start = middle + 1;
+            }
+        }
+        return -1;
+    }
+
+    private boolean isNumberTheCorrectAnswer(int middle, int[] nums1, int[] nums2, int numberOfElementsSmallerThanMedian) {
+        return isNumberBiggerThanItsOpponent(middle, nums1, nums2, numberOfElementsSmallerThanMedian) &&
+                isNumberSmallerThanAfterOpponent(middle, nums1, nums2, numberOfElementsSmallerThanMedian);
+    }
+
+    private boolean isNumberSmallerThanAfterOpponent(int middle, int[] nums1, int[] nums2, int numberOfElementsSmallerThanMedian) {
+        // numberOfElementsSmallerThanMedian will never be less than middle because this will return false
+        // in isNumberBiggerThanItsOpponent which will cause this method not to get called
+        int afterOpponentIndex = getOpponentIndex(middle, numberOfElementsSmallerThanMedian) + 1;
+        if (afterOpponentIndex >= nums2.length) return true;
+        return nums1[middle] <= nums2[afterOpponentIndex];
+    }
+
+    private boolean isNumberBiggerThanItsOpponent(int middle, int[] nums1, int[] nums2, int numberOfElementsSmallerThanMedian) {
+        if (numberOfElementsSmallerThanMedian < middle) {
+            return false;
+        } else if (numberOfElementsSmallerThanMedian == middle) {
+            return true;
+        }
+        int opponentIndex = getOpponentIndex(middle, numberOfElementsSmallerThanMedian);
+        if (opponentIndex >= nums2.length) return false;
+        return nums1[middle] >= nums2[opponentIndex];
+    }
+
+    private int getOpponentIndex(int middle, int numberOfElementsSmallerThanMedian) {
+        return numberOfElementsSmallerThanMedian - middle - 1;
+    }
+}
