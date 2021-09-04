@@ -1,0 +1,123 @@
+import java.util.ArrayList;
+import java.util.List;
+
+public class Main {
+    public static void main(String[] args) {
+        Solution solution = new Solution();
+        int[] ans = solution.sumOfDistancesInTree(6, new int[][]{{0, 1}, {0, 2}, {2, 3}, {2, 4}, {2, 5}});
+        System.out.println();
+    }
+}
+
+class Solution {
+    int[] answer, sz;
+    final static int ROOT = 0;
+    int n;
+    Tree tree;
+
+    public int[] sumOfDistancesInTree(int n, int[][] edges) {
+        this.n = n;
+        answer = new int[n];
+        tree = new TreeImpl(n, edges);
+        RootSolver rootSolver = new RootSolverImpl(tree);
+        answer[ROOT] = rootSolver.getRootAnswer();
+        for (int u : tree.getChildren(ROOT)) {
+            solve(u, ROOT);
+        }
+        return answer;
+    }
+
+    private void solve(int v, int u) {
+        answer[v] = answer[u] + (n - tree.getSubTreeSize(v) - 1) -
+                (tree.getSubTreeSize(v) - 1);
+        for (int j : tree.getChildren(v)) {
+            if (j == u) continue;
+            solve(j, v);
+        }
+    }
+
+}
+
+interface Tree {
+    List<Integer> getChildren(int u);
+
+    int getSubTreeSize(int u);
+}
+
+class TreeImpl implements Tree {
+    List<List<Integer>> graph = new ArrayList<>();
+    int[] size;
+
+    TreeImpl(int n, int[][] edges) {
+        initializeList(n);
+        build(edges);
+        size = new int[n];
+        buildSubTreeSize();
+    }
+
+    private void buildSubTreeSize() {
+        dfs(Solution.ROOT, -1);
+    }
+
+    private void dfs(int u, int p) {
+        size[u] = 1;
+        for (int v : getChildren(u)) {
+            if (v == p) continue;
+            dfs(v, u);
+            size[u] += size[v];
+        }
+    }
+
+    private void build(int[][] edges) {
+        for (int[] edge : edges) {
+            graph.get(edge[0]).add(edge[1]);
+            graph.get(edge[1]).add(edge[0]);
+        }
+    }
+
+    private void initializeList(int n) {
+        for (int i = 0; i < n; i++) {
+            graph.add(new ArrayList<>());
+        }
+    }
+
+    @Override
+    public List<Integer> getChildren(int u) {
+        return graph.get(u);
+    }
+
+    @Override
+    public int getSubTreeSize(int u) {
+        return size[u];
+    }
+
+
+}
+
+interface RootSolver {
+    int getRootAnswer();
+}
+
+class RootSolverImplsum-of-es-in-tree implements RootSolver {
+    Tree tree;
+    int answer;
+
+    RootSolverImpl(Tree tree) {
+        this.tree = tree;
+    }
+
+    @Override
+    public int getRootAnswer() {
+        answer = 0;
+        dfs(Solution.ROOT, -1, 0);
+        return answer;
+    }
+
+    private void dfs(int u, int p, int len) {
+        answer += len;
+        for (int v : tree.getChildren(u)) {
+            if (v == p) continue;
+            dfs(v, u, len + 1);
+        }
+    }
+}
